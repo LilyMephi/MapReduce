@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package  server;
+
+option go_package = "mapreduce/proto;serverpb";
+
+// Операции над входной строкой
+enum Operation {
+  OP_UNSPECIFIED = 0;
+  OP_UPPER       = 1;
+  OP_LOWER       = 2;
+  OP_REVERSE     = 3;
+  OP_BASE64      = 4;
+  OP_SHA256      = 5;
+  OP_COUNT_WORDS = 6;
+}
+
+// Задача: операция + входные данные
+message TaskRequest {
+  string request_id = 1;       // для логов/трассировки
+  Operation operation = 2;
+  string payload = 3;          // исходные данные
+}
+
+// Результат
+message TaskResponse {
+  string request_id = 1;
+  bool ok = 2;
+  string error = 3;            // если ok=false
+  string result = 4;           // результат преобразования
+  int64 processing_ns = 5;     // время обработки
+}
+
+service TaskService {
+  // 1. Одна задача — один результат
+  rpc Process (TaskRequest) returns (TaskResponse);
+
+  // 2. Задача, результат слишком большой — отдаём чанками
+  rpc ProcessStream (TaskRequest) returns (stream TaskResponse);
+
+  // 3. Поток задач — на каждую ответ
+  rpc ProcessBatch (stream TaskRequest) returns (stream TaskResponse);
+}
