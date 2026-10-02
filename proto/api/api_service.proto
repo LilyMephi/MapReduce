@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package logcounter.proto.api;
+
+import "proto/api/messages.proto";
+
+option go_package = "logcounter/grpc/api;api";
+
+// MapService registers worker hosts and dispatches file-processing tasks.
+service MapService {
+  rpc Init(InitRequest) returns (InitResponse);
+
+  rpc DoTask(TaskRequest) returns (TaskResponse);
+}
+
+// ReduceService aggregates the key/value map produced by map tasks.
+service ReduceService {
+  rpc Reduce(ReduceRequest) returns (ReduceResponse);
+}

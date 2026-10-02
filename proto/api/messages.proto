@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package logcounter.proto.api;
+
+option go_package = "logcounter/grpc/api;api";
+
+// StatusResponse reports the outcome of an RPC.
+enum StatusResponse {
+  Ok      = 0;
+  Warning = 1;
+  Error   = 2;
+}
+
+// TaskType selects the operation to run over a file.
+enum TaskType {
+  COUNT_WORDS       = 0;
+  COUNT_OCCURRENCES = 1;
+  COUNT_LINES       = 2;
+  COUNT_CHARS       = 3;
+}
+
+// HostInfo carries everything needed to connect to a host and how many free
+// handlers (execution slots) it currently has available.
+message HostInfo {
+  string id            = 1;
+  string host          = 2;
+  uint32 port          = 3;
+  uint32 free_handlers = 4;
+}
+
+// InitRequest registers a host together with its available handlers.
+message InitRequest {
+  repeated HostInfo host = 1;
+}
+
+message InitResponse {
+  StatusResponse status = 1;
+}
+
+// TaskRequest describes a unit of work: a file path and the task to run on it.
+message TaskRequest {
+  string   file_path = 1;
+  TaskType task      = 2;
+  string   word      = 3; // target word for COUNT_OCCURRENCES
+}
+
+// TaskResponse is the numeric result of a task and its execution status.
+message TaskResponse {
+  int64          result = 1;
+  StatusResponse status = 2;
+}
+
+// MapEntry is one key/value pair produced by a map function, tagged with the
+// type of function that produced it.
+message MapEntry {
+  string key           = 1;
+  int64  value         = 2;
+  string function_type = 3;
+}
+
+// ReduceRequest carries the map to aggregate.
+message ReduceRequest {
+  repeated MapEntry entries = 1;
+}
+
+// ReduceResponse is the aggregated numeric result and its execution status.
+message ReduceResponse {
+  int64          result = 1;
+  StatusResponse status = 2;
+}
